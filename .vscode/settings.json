@@ -1,0 +1,11 @@
+{
+    "lldb.displayFormat": "hex",
+    "lldb.showDisassembly": "never",
+    "lldb.dereferencePointers": false,
+    "lldb.consoleMode": "commands",
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml"
+    ]
+}
