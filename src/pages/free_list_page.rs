@@ -40,7 +40,7 @@ impl<'a> FreeListPage<'a> {
 
         // Retrieve the free list pages from memory
         for (i, free_list_page) in chunked_free_page_indices.iter().enumerate() {
-            free_list_pages.push(memory.get_page_mut::<FreeListPage>(free_list_page.to_usize())?);
+            free_list_pages.push(memory.get_page_mut::<FreeListPage>(free_list_page.to_u64())?);
             if i == num_chunks - 1 {
                 // If we are at the last free list page, we need to set the free pages list to 0
                 free_list_pages[i].set_free_list_page_next(U48::from(0u64));
@@ -71,7 +71,7 @@ impl<'a> FreeListPage<'a> {
         loop {
             free_pages_list.push(current_index);
             let next_free_list_page =
-                memory.get_page_mut::<FreeListPage>(current_index.to_usize())?;
+                memory.get_page_mut::<FreeListPage>(current_index.to_u64())?;
             current_index = next_free_list_page.get_free_list_page_next();
             if current_index == U48::from(0u64) {
                 break;
@@ -91,7 +91,7 @@ impl<'a> FreeListPage<'a> {
         loop {
             free_pages_list.push(current_index);
             let mut next_free_list_page =
-                memory.get_page_mut::<FreeListPage>(current_index.to_usize())?;
+                memory.get_page_mut::<FreeListPage>(current_index.to_u64())?;
 
             let free_pages_list_slice = next_free_list_page.get_free_pages_list_slice()?;
             free_pages_list_vec.extend(free_pages_list_slice.to_vec());

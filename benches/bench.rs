@@ -7,14 +7,15 @@ use memory_manager::pages::free_list_page::FreeListPage;
 use memory_manager::pages::Page;
 use memory_manager::u48::U48;
 use rand::Rng;
+use std::any;
 use std::cell::RefCell;
 
 fn memory_manager_bench(c: &mut criterion::Criterion) {
-    let num_pages: u64 = 4080u64;
+    let num_pages: u64 = 33_554_432u64;
     let mem: MemoryManager = MemoryManager::new("bench.bin", num_pages).unwrap();
 
     let mut rng = rand::thread_rng();
-    let pages = (0..num_pages)
+    let pages = (0..20000)
         .map(|_| {
             let random_slice: Vec<u8> = (0..4096).map(|_| rng.gen::<u8>()).collect();
             Page {
@@ -26,7 +27,9 @@ fn memory_manager_bench(c: &mut criterion::Criterion) {
     // Envuelve pages en un RefCell
     let pages_ref = RefCell::new(pages);
 
-    let throughput = Throughput::Bytes(std::mem::size_of::<Page>() as u64 * num_pages);
+    let random_slice: Vec<u64> = (0..20000).map(|_| rng.gen_range(0..=33_554_431)).collect();
+
+    let throughput = Throughput::Bytes(std::mem::size_of::<Page>() as u64 * 20000);
 
     let mut group = c.benchmark_group("memory_manager");
     group.throughput(throughput);
@@ -38,14 +41,19 @@ fn memory_manager_bench(c: &mut criterion::Criterion) {
             // Obtén un préstamo mutable de pages_ref
             let mut pages_borrowed = data.borrow_mut();
             b.iter(|| {
-                for i in 0..num_pages as usize {
-                    let mut any_page: ConfigPage<'_> = mem.get_page_mut(i).unwrap();
-                    let temp_config_page = ConfigPage {
-                        data: &mut pages_borrowed[i].data,
-                    };
-                    any_page.set_config_page(&temp_config_page);
+                for i in 0..random_slice.len() {
+                    let mut any_page: ConfigPage<'_> = mem.get_page_mut(random_slice[i]).unwrap();
+                    any_page.data[0] = any_page.data[3] + i as u8;
                 }
-                mem.flush().unwrap();
+
+                /*               for i in 0..random_slice.len() {
+                    let mut any_page: ConfigPage<'_> = mem.get_page_mut(random_slice[i]).unwrap();
+                    let temp_config_page = ConfigPage {
+                        data: &mut pages_borrowed[i as usize].data,
+                    };
+                    any_page.copy_config_page(&temp_config_page);
+                }
+                mem.flush().unwrap();*/
             })
         },
     );
@@ -106,7 +114,7 @@ fn memory_manager_read_free_list_points_bench(c: &mut criterion::Criterion) {
 criterion_group!(
     benches,
     memory_manager_bench,
-    memory_manager_read_free_list_points_bench
+    /* memory_manager_read_free_list_points_bench */
 );
 criterion_main!(benches);
 

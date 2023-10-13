@@ -8,7 +8,7 @@ use std::slice;
 
 use crate::pages::from_slice::FromSlice;
 
-const PAGE_SIZE: usize = 0x1000; // 4KB
+const PAGE_SIZE: u64 = 0x1000; // 4KB
 const _FRAGMENT_SIZE: usize = 0x10; // 4KB
 pub const RESERVED_CONFIG_PAGE_INDEX: u64 = 0;
 
@@ -19,7 +19,7 @@ pub struct MemoryManager {
 
 impl MemoryManager {
     pub fn new(filename: &str, num_pages: u64) -> Result<Self, std::io::Error> {
-        let log = logger::get_logger();
+        let log: &slog::Logger = logger::get_logger();
         // Open the memory-mapped file
         let file = match OpenOptions::new()
             .read(true)
@@ -57,7 +57,7 @@ impl MemoryManager {
         Ok(MemoryManager { mmap: mmap })
     }
 
-    pub fn get_page_mut<'a, T: FromSlice<'a>>(&self, index: usize) -> Result<T, std::io::Error> {
+    pub fn get_page_mut<'a, T: FromSlice<'a>>(&self, index: u64) -> Result<T, std::io::Error> {
         let offset = (index * PAGE_SIZE).try_into().map_err(|_| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -65,7 +65,10 @@ impl MemoryManager {
             )
         })?;
         unsafe {
-            let data = slice::from_raw_parts_mut(self.mmap.as_mut_ptr().offset(offset), PAGE_SIZE);
+            let data = slice::from_raw_parts_mut(
+                self.mmap.as_mut_ptr().offset(offset),
+                PAGE_SIZE as usize,
+            );
             Ok(T::from_slice(data))
         }
     }

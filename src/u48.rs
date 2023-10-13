@@ -94,6 +94,9 @@ impl U48 {
     pub fn to_usize(&self) -> usize {
         usize::from(*self)
     }
+    pub fn to_u64(&self) -> u64 {
+        u64::from(*self)
+    }
 }
 
 impl fmt::Debug for U48 {
