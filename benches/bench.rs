@@ -73,6 +73,7 @@ fn memory_manager_read_free_list_points_bench(c: &mut criterion::Criterion) {
         .unwrap();
 
     memory.flush().unwrap();
+    
     let get_free_pages_list_ptr_len =
         FreeListPage::get_free_pages_list_ptr(U48::from(1u64), &memory)
             .unwrap()
